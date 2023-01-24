@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const fs = require("fs");
 
 const registry = require("./registry.json");
 
@@ -18,6 +19,30 @@ router.all("/:apiName/:path", (req, res) => {
   } else {
     res.send("API Name does not exist.");
   }
+});
+
+router.post("/register", (req, res) => {
+  const registrationInfo = req.body;
+
+  registrationInfo.url =
+    registrationInfo.protocol +
+    "://" +
+    registrationInfo.host +
+    ":" +
+    registrationInfo.port +
+    "/";
+
+  registry.services[registrationInfo.apiName] = {
+    ...registrationInfo,
+  };
+
+  fs.writeFile("./routes/registry.json", JSON.stringify(registry), (err) => {
+    if (err) {
+      res.send("Could not register " + registrationInfo.apiName + ":" + err);
+    } else {
+      res.send("Successfully register '" + registrationInfo.apiName + "'");
+    }
+  });
 });
 
 module.exports = router;
